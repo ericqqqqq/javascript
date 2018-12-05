@@ -302,36 +302,53 @@ export class KubeConfig {
 
         if (user.authProvider && user.authProvider.config) {
             const config = user.authProvider.config;
-            // This should probably be extracted as auth-provider specific plugins...
-            token = 'Bearer ' + config['access-token'];
-            const expiry = config.expiry;
 
-            if (expiry) {
-                const expiration = Date.parse(expiry);
-                if (expiration < Date.now()) {
-                    if (config['cmd-path']) {
-                        const args = config['cmd-args'] ? [config['cmd-args']] : [];
-                        // TODO: Cache to file?
-                        // TODO: do this asynchronously
-                        let result: execa.ExecaReturns;
+            if (user.authProvider.name && user.authProvider.name === 'oidc') {
+                token = 'Bearer ' + config['id-token'];
 
-                        try {
-                            result = execa.sync(config['cmd-path'], args);
-                        } catch (err) {
-                            throw new Error('Failed to refresh token: ' + err.message);
+                const parts = config['id-token'].split('.');
+                if (parts.length !== 3) {
+                    return;
+                }
+
+                const jwtAttributes = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
+                const expiry = jwtAttributes.exp;
+                if (expiry && expiry < Date.now() / 1000) {
+                    // TODO: refresh token
+                    throw new Error('Token is expired!');
+                }
+            } else {
+                // This should probably be extracted as auth-provider specific plugins...
+                token = 'Bearer ' + config['access-token'];
+                const expiry = config.expiry;
+
+                if (expiry) {
+                    const expiration = Date.parse(expiry);
+                    if (expiration < Date.now()) {
+                        if (config['cmd-path']) {
+                            const args = config['cmd-args'] ? [config['cmd-args']] : [];
+                            // TODO: Cache to file?
+                            // TODO: do this asynchronously
+                            let result: execa.ExecaReturns;
+
+                            try {
+                                result = execa.sync(config['cmd-path'], args);
+                            } catch (err) {
+                                throw new Error('Failed to refresh token: ' + err.message);
+                            }
+
+                            const output = result.stdout.toString();
+                            const resultObj = JSON.parse(output);
+
+                            let pathKey = config['token-key'];
+                            // Format in file is {<query>}, so slice it out and add '$'
+                            pathKey = '$' + pathKey.slice(1, -1);
+
+                            config['access-token'] = jsonpath.query(resultObj, pathKey);
+                            token = 'Bearer ' + config['access-token'];
+                        } else {
+                            throw new Error('Token is expired!');
                         }
-
-                        const output = result.stdout.toString();
-                        const resultObj = JSON.parse(output);
-
-                        let pathKey = config['token-key'];
-                        // Format in file is {<query>}, so slice it out and add '$'
-                        pathKey = '$' + pathKey.slice(1, -1);
-
-                        config['access-token'] = jsonpath.query(resultObj, pathKey);
-                        token = 'Bearer ' + config['access-token'];
-                    } else {
-                        throw new Error('Token is expired!');
                     }
                 }
             }
