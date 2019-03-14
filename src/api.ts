@@ -47513,9 +47513,8 @@ export class Core_v1Api {
      * @param namespace object name and auth scope, such as for teams and projects
      * @param body 
      * @param pretty If &#39;true&#39;, then the output is pretty printed.
-     * @param {*} [options] Override http request options.
      */
-    public patchNamespacedService (name: string, namespace: string, body: any, options: any = {}, pretty?: string) : Promise<{ response: http.IncomingMessage; body: V1Service;  }> {
+    public patchNamespacedService (name: string, namespace: string, body: any, pretty?: string) : Promise<{ response: http.IncomingMessage; body: V1Service;  }> {
         const localVarPath = this.basePath + '/api/v1/namespaces/{namespace}/services/{name}'
             .replace('{' + 'name' + '}', String(name))
             .replace('{' + 'namespace' + '}', String(namespace));
@@ -47544,7 +47543,7 @@ export class Core_v1Api {
         }
 
         let useFormData = false;
-        (<any>Object).assign(headerParams, options.headers);
+
         let requestOptions: request.Options = {
             method: 'PATCH',
             qs: queryParameters,
@@ -57615,9 +57614,8 @@ export class Extensions_v1beta1Api {
      * @param namespace object name and auth scope, such as for teams and projects
      * @param body 
      * @param pretty If &#39;true&#39;, then the output is pretty printed.
-     * @param {*} [options] Override http request options.
      */
-    public patchNamespacedIngress (name: string, namespace: string, body: any, options: any = {}, pretty?: string) : Promise<{ response: http.IncomingMessage; body: V1beta1Ingress;  }> {
+    public patchNamespacedIngress (name: string, namespace: string, body: any, pretty?: string) : Promise<{ response: http.IncomingMessage; body: V1beta1Ingress;  }> {
         const localVarPath = this.basePath + '/apis/extensions/v1beta1/namespaces/{namespace}/ingresses/{name}'
             .replace('{' + 'name' + '}', String(name))
             .replace('{' + 'namespace' + '}', String(namespace));
@@ -57646,7 +57644,6 @@ export class Extensions_v1beta1Api {
         }
 
         let useFormData = false;
-        (<any>Object).assign(headerParams, options.headers);
 
         let requestOptions: request.Options = {
             method: 'PATCH',
